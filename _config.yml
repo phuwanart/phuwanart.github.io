@@ -28,7 +28,7 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: phuwanart
 github_username: phuwanart
 facebook_username: phuwanart
-rss: "RSS"
+rss: "Subscribe"
 
 # Build settings
 theme: minima
