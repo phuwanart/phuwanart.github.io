@@ -9,14 +9,14 @@ theme: jekyll-theme-chirpy
 lang: en
 
 # Change to your timezone › https://kevinnovak.github.io/Time-Zone-Picker
-timezone:
+timezone: Asia/Bangkok
 
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
 title: Phuwanart Larpmark # the main title
 
-tagline: A text-focused Jekyll theme # it will display as the sub-title
+tagline: # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   A minimal, responsive and feature-rich Jekyll theme for technical writing.
@@ -40,7 +40,6 @@ social:
     # The first element serves as the copyright owner's link
     - https://twitter.com/phuwanart # change to your twitter homepage
     - https://github.com/phuwanart # change to your github homepage
-    # Uncomment below to add more social links
     - https://www.facebook.com/phuwanart
     - https://www.linkedin.com/in/phuwanart
 
@@ -73,7 +72,7 @@ theme_mode: # [light|dark]
 img_cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: assets/img/avatar.png
 
 # boolean type, the global switch for TOC in posts.
 toc: true
@@ -82,7 +81,7 @@ comments:
   active: # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
   # The active options are as follows:
   disqus:
-    shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
+    shortname: phuwanart # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
   # utterances settings › https://utteranc.es/
   utterances:
     repo: # <gh-username>/<repo>
