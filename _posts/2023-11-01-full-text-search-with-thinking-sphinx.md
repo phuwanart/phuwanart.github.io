@@ -49,7 +49,7 @@ Rails.application.routes.draw do
   end
 end
 ```
-{: file='config/routes.rb'}
+{:file='config/routes.rb'}
 
 เพิ่ม search ใน products controller:
 
@@ -72,7 +72,7 @@ end
   <%= submit_tag :search %>
 <% end %>
 ```
-{: file='app/views/products/index.html.erb'}
+{:file='app/views/products/index.html.erb'}
 
 จากนั้นเราจะสร้างไฟล์เพื่อกำหนดว่าจะทำ index กับข้อมูลอะไรบ้างใน model นั้น โดยรูปแบบจะเป็นแบบนี้ `app/indices/[modelname]_index.rb`:
 
@@ -84,7 +84,7 @@ ThinkingSphinx::Index.define :product, with: :real_time do
   indexes detail
 end
 ```
-{: file='app/indices/product_index.rb'}
+{:file='app/indices/product_index.rb'}
 
 เรียกใช้คำสั่งเพื่อทำ index แล้วเริ่มใช้ Sphinx:
 
@@ -105,7 +105,7 @@ class Product < ApplicationRecord
   ThinkingSphinx::Callbacks.append(self, behaviours: [:real_time])
 end
 ```
-{: file='app/models/product.rb'}
+{:file='app/models/product.rb'}
 
 เพิ่มการตั้งค่า charset เพื่อให้รองรับการค้นหาด้วยอักษรภาษาไทย:
 
@@ -113,6 +113,6 @@ end
 development:
   charset_table: "0..9, A..Z->a..z, _, a..z, U+E00..U+E7F"
 ```
-{: file='config/thinking_sphinx.yml'}
+{:file='config/thinking_sphinx.yml'}
 
 แต่การค้นหาภาษาไทยสำหรับ Sphinx จะค้นหาได้ไม่สมบูรณ์นัก เพราะไม่มีฟีเจอร์การตัดคำ ซึ่งภาษาไทยไม่ได้เว้นวรรคแบบภาษาอังกฤษ ซึ่งผมก็ได้สร้าง [gem](https://github.com/phuwanart/thbrk) สำหรับใช้ตัดคำเพื่อให้ค้นหาด้วย Sphinx ได้ เข้าไปดูแล้วทำตามได้เลย
