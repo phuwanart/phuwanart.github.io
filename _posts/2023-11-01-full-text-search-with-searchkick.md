@@ -69,6 +69,10 @@ rails db:seed
 ```
 เปิด http://localhost:3000/products:
 
+
+![16988928511916](https://i.imgur.com/Z3dnbiv.png)
+
+
 หลังจากนี้จะ implement search ให้กับ Product ก่อนอื่นก็เพิ่ม routes search:
 
 ```ruby
@@ -94,6 +98,10 @@ end
 
 จะได้ form มาแบบนี้:
 
+
+![16988929644838](https://i.imgur.com/paxMUFn.png)
+
+
 แล้วก็ไป implement search method:
 
 ```ruby
@@ -110,9 +118,24 @@ end
 
 ตอนนี้ทำง่าย ๆ ไปก่อน แล้วไปลองดูผลงานกัน:
 
+
+![16988930135463](https://i.imgur.com/tLidcrB.png)
+
+
 มาถึงขั้นนี้แล้วก็เหมือนว่าทุกอย่างจะใช้ได้ดี ที่นี้ลองใส่ข้อมูลที่เป็นภาษาไทยลงไป:
 
+
+![16988931025125](https://i.imgur.com/18Grhkl.png)
+
+
 แล้วก็ลองค้นหาดู ก็จะเห็นว่าได้ผลออกมา:
+
+
+![16988931625161](https://i.imgur.com/i7f48aY.png)
+
+
+![16988932201872](https://i.imgur.com/YS24nY5.png)
+
 
 ```ruby
 class Product < ApplicationRecord
@@ -146,3 +169,6 @@ end
 ```bash
 rails searchkick:reindex CLASS=Product
 ```
+
+
+![16988932763830](https://i.imgur.com/q7vLWyb.png)
