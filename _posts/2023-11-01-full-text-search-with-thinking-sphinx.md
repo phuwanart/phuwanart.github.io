@@ -2,7 +2,7 @@
 layout: post
 title: Full text search with Thinking Sphinx
 date: 2023-11-01 13:37 +0700
-categories: Articles
+categories: Posts
 tags: sphinx
 ---
 

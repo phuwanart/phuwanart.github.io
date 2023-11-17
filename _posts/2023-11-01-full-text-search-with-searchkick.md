@@ -2,7 +2,7 @@
 layout: post
 title: Full text search with Searchkick
 date: 2023-11-01 13:16 +0700
-categories: Articles
+categories: Posts
 tags: [opensearch, searchkick]
 ---
 
