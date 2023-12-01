@@ -38,8 +38,8 @@ social:
   email: phuwanart@outlook.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/phuwanart # change to your twitter homepage
     - https://github.com/phuwanart # change to your github homepage
+    - https://twitter.com/phuwanart # change to your twitter homepage
     - https://www.facebook.com/phuwanart
     - https://www.linkedin.com/in/phuwanart
 
