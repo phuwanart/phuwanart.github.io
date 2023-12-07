@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Full text search with Thinking Sphinx
-date: 2023-11-01 13:37 +0700
+date: 2022-10-04 00:00 +0700
 categories: Posts
 tags: sphinx
 ---
@@ -115,4 +115,6 @@ development:
 ```
 {:file='config/thinking_sphinx.yml'}
 
-แต่การค้นหาภาษาไทยสำหรับ Sphinx จะค้นหาได้ไม่สมบูรณ์นัก เพราะไม่มีฟีเจอร์การตัดคำ ซึ่งภาษาไทยไม่ได้เว้นวรรคแบบภาษาอังกฤษ ซึ่งผมก็ได้สร้าง [gem](https://github.com/phuwanart/thbrk) สำหรับใช้ตัดคำเพื่อให้ค้นหาด้วย Sphinx ได้ เข้าไปดูแล้วทำตามได้เลย
+## Conclusion
+
+การค้นหาภาษาไทยสำหรับ Sphinx จะค้นหาได้ไม่สมบูรณ์นัก เพราะไม่มีฟีเจอร์การตัดคำ ซึ่งภาษาไทยไม่ได้เว้นวรรคแบบภาษาอังกฤษ ซึ่งผมก็ได้สร้าง [gem](https://github.com/phuwanart/thbrk) สำหรับใช้ตัดคำเพื่อให้ค้นหาด้วย Sphinx ได้ เข้าไปดูแล้วทำตามได้เลย
