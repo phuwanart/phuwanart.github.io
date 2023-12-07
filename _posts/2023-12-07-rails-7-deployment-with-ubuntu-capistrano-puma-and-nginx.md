@@ -3,8 +3,8 @@ layout: post
 title: Rails 7 Deployment with Ubuntu, Capistrano, Puma and Nginx
 categories: Posts
 tags: rails deploy ubuntu capistrano
+date: 2023-12-07 09:47 +0700
 ---
-
 ในที่นี้เราจะทำการ deploy rails ไปที่ ubuntu server กัน โดยเราจะใช้ stack ดังนี้:
 
 - Ubuntu 22.04 LTS
@@ -135,16 +135,15 @@ sudo service nginx restart
 ```
 {:file='deploy@1.2.3.4'}
 
+## Create Rails App
 
-## Installing Redis
+เราจะสร้าง app แบบง่าย ๆ เพื่อเป็นการทดสอบการ deploy
 
 ```sh
-sudo apt install redis
-sudo service redis-server status
+rails _7.0.8_ new appname
 ```
-{:file='deploy@1.2.3.4'}
 
-## Create Rails App
+จากนั้นก็เอา app นี้ขึ้น github
 
 ## Setup SSH keys
 
@@ -175,6 +174,10 @@ cat ~/.ssh/id_rsa.pub
 
 ## Setup Capistrano
 
+เราจะใช้ capistrano สำหรับ automate deployments เพื่อให้การ deploy ทำได้ง่าย ๆ
+
+เพิ่ม gem ที่จำเป็นใน `Gemfile`:
+
 ```ruby
 group :development do
   gem "bcrypt_pbkdf"
@@ -182,21 +185,33 @@ group :development do
   gem "capistrano3-puma", "~> 5"
   gem "capistrano-rails"
   gem "capistrano-rbenv"
-  gem "capistrano-rbenv-vars"
   gem "ed25519"
 end
 ```
 {:file='Gemfile'}
+
+ติดตั้ง gem ที่เพิ่มเข้ามา
 
 ```sh
 bundle
 ```
 {:file='Local Machine'}
 
+ใช้ `capistrano` สร้างไฟล์ที่จำเป็นในการ deploy
+
 ```sh
-cap install
+$ cap install
+mkdir -p config/deploy
+create config/deploy.rb
+create config/deploy/staging.rb
+create config/deploy/production.rb
+mkdir -p lib/capistrano/tasks
+create Capfile
+Capified
 ```
 {:file='Local Machine'}
+
+จากนั้นแก้ไฟล์ `Capfile` ตามนี้
 
 ```ruby
 # Load DSL and set up stages
@@ -229,13 +244,12 @@ install_plugin Capistrano::SCM::Git
 #
 # require "capistrano/rvm"
 require "capistrano/rbenv"
-require "capistrano/rbenv_vars"
 # require "capistrano/chruby"
 require "capistrano/bundler"
-require "capistrano/rails"
 require "capistrano/rails/assets"
 require "capistrano/rails/migrations"
 # require "capistrano/passenger"
+
 require "capistrano/puma"
 install_plugin Capistrano::Puma
 install_plugin Capistrano::Puma::Systemd
@@ -246,6 +260,8 @@ install_plugin Capistrano::Puma::Nginx
 Dir.glob("lib/capistrano/tasks/*.rake").each { |r| import r }
 ```
 {:file='Capfile'}
+
+จากนั้นแก้ไข้ไฟล์ `config/deploy.rb` ตามนี้
 
 ```ruby
 # config valid for current version and patch releases of Capistrano
@@ -278,7 +294,7 @@ append :linked_files, "config/database.yml", "config/master.key"
 
 # Default value for linked_dirs is []
 # append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "vendor", "storage"
-append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "vendor/bundle", "storage"
+append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "vendor/bundle", ".bundle", "storage"
 
 # Default value for default_env is {}
 # set :default_env, { path: "/opt/ruby/bin:$PATH" }
@@ -298,6 +314,8 @@ set :puma_workers, 5
 ```
 {:file='config/deploy.rb'}
 
+และสุดท้ายแก้ไขไฟล์ `config/deploy/production.rb`
+
 ```ruby
 server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web]
 ```
@@ -305,25 +323,55 @@ server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web]
 
 ## Setup Production Variables
 
+ก่อนที่จะ deploy ครั้งแรกให้เราเข้าไปสร้างโฟลเดอร์ตาม location ที่กำหนดตาม `set :deploy_to` ใน `config/deploy.rb` จากนั้นสร้างไฟล์ `.rbenv-vars`
+
+```sh
+$ mkdir [DEPLOY_TO]
+$ cd [DEPLOY_TO]
+$ vim .rbenv-vars
+```
+{:file='deploy@1.2.3.4'}
+
+จากนั้นเพิ่มตามนี้ลงไนไฟล์
+
+```
+SECRET_KEY_BASE=<random sequence> # use local `rails secret`
+RAILS_ENV=production
+```
+{:file='.rbenv-vars'}
+
+`SECRET_KEY_BASE` เราสามารถสร้างได้ด้วยคำสั่งนี้บนเครื่อง local
+
+```sh
+rails secret
+```
+{:file='Local Machine'}
+
 ## Deploy
+
+เริ่มแรกให้รัน `deploy:check` ก่อน เพื่อเป็นการสร้างโครงสร้างของโฟลเดอร์บนเครื่องที่เราจะ deploy
 
 ```sh
 cap production deploy:check
 ```
 {:file='Local Machine'}
 
+แน่นอนว่ามาถึงตรงนี้จะมี error ว่าไม่ไฟล์อย่าง `database.yml`, `master.key` ซึ่งเป็นรายชื่อไฟล์ที่เราทำหนดใน `linked_files` นั่นแหละ ให้เราทำการ copy ไปไว้ในเครื่อง deploy ก่อน
+
 ```sh
-scp config/database.yml femto@192.192.1.184:/home/femto/whowedding/shared/config/database.yml
-scp config/master.key femto@192.192.1.184:/home/femto/whowedding/shared/config/master.key
+scp config/database.yml [DEPLOY_USER]@[PRODUCTION_IP]:[DEPLOY_TO]/shared/config/database.yml
+scp config/master.key [DEPLOY_USER]@[PRODUCTION_IP]:[DEPLOY_TO]/shared/config/master.key
 ```
 {:file='Local Machine'}
 
+จากนั้นให้รันคำสั่งนี้
 
 ```sh
 cap production puma:config
 ```
 {:file='Local Machine'}
 
+จากนั้นเป็นการ config ให้ใช้ puma ผ่าน [systemd](https://www.freedesktop.org/wiki/Software/systemd/)
 ```sh
 cap production puma:systemd:config
 cap production puma:systemd:enable
@@ -332,7 +380,7 @@ cap production puma:systemd:enable
 
 > ในขั้นตอนนี้อาจจะมีการขอสิทธิ์ sudo ในตอนรันคำสั่ง ซึ่งจะมี error ประมาณนี้:
 > ```sh
-> 01 sudo /bin/systemctl restart puma_whowedding_production
+> 01 sudo /bin/systemctl restart puma_appname_production
 > 01 sudo
 > 01 :
 > 01 a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
@@ -344,37 +392,62 @@ cap production puma:systemd:enable
 > ```
 > {:file='Local Machine'}
 >
-> ก็ให้เรา login เข้า deploy แล้วไปแก้ไขได้ดังนี้:
+> ให้เรา login เข้า deploy user แล้วทำตามนี้:
 >
 > ```sh
 > sudo visudo
 > ```
 > {:file='deploy@1.2.3.4'}
 > 
+> จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
 > ```sh
 > # Allow members of group sudo to execute any command
 > %sudo   ALL=(ALL:ALL) ALL
 > 
-> femto   ALL=(ALL) NOPASSWD:ALL
+> deploy  ALL=(ALL) NOPASSWD:ALL
 > ```
 > {:file='deploy@1.2.3.4'}
 {: .prompt-danger }
+
+เสร็จแล้วให้รัน 
+
+```sh
+cap production puma:start
+```
+{:file='Local Machine'}
+
+และดูว่า puma ได้รันขึ้นมาแล้วด้วย
+
+```sh
+cap production puma:status
+```
+{:file='Local Machine'}
+
+ขั้นต่อไปรันคำสั่งนี้เพื่อเป็นการ config nginx
 
 ```sh
 cap production puma:nginx_config
 ```
 {:file='Local Machine'}
 
+เมื่อเสร็จแล้วเราก็ต้อง restart nginx อีกสักรอบ
+
 ```sh
 sudo service nginx restart
 ```
 {:file='deploy@1.2.3.4'}
+
+จากนั้นให้ทำการ deploy ได้เลย
 
 ```sh
 cap production deploy
 ```
 {:file='Local Machine'}
 
+แล้วไปที่ browser แล้วไปที่ `PRODUCTION_IP`
+
+> บางที่เราอาจจะเจอกับ 503 bad gateway ซึ่งเมื่อดู log แล้วจะเป็นการฟ้องเรื่อง permission
+> 
 > ```sh
 > tail -f /var/log/nginx/error.log
 >
@@ -382,28 +455,40 @@ cap production deploy
 > ```
 > {:file='deploy@1.2.3.4'}
 >
+> ให้เราทำการแก้ permission ของ deploy user ได้ด้วยคำสั่งนี้
+>
 > ```sh
 > cd /home
-> sudo chmod o=rx ubuntu/
+> sudo chmod o=rx deploy/
 > ```
 > {:file='deploy@1.2.3.4'}
 {: .prompt-danger }
 
+> และบางทีอาจจะเจอ 500 Internal Server Error ให้ไปดู log ของ `puma_error.log` หากเจอว่า
+> 
 > ```sh
-> Permission denied @ rb_io_reopen - /home/ubuntu/whowedding/shared/log/puma_access.log (Errno::EACCES)
+> Permission denied @ rb_io_reopen - /home/deploy/appname/shared/log/puma_access.log (Errno::EACCES)
 > ```
 > {:file='deploy@1.2.3.4'}
 >
+> ให้ทำการแก้ไข permission ของโฟลเดอร์ appname เสียก่อน
+>
 > ```sh
-> sudo chown ubuntu:ubuntu -R /home/ubuntu/whowedding/
+> sudo chown deploy:deploy -R /home/deploy/appname/
 > ```
+> 
+> จากนั้นก็ทำการ restart puma
+> 
 > {:file='deploy@1.2.3.4'}
+> ```sh
+> cap production puma:restart
+> ```
+> {:file='Local Machine'}
 {: .prompt-danger }
 
-```sh
-cap production puma:restart
-```
-{:file='Local Machine'}
+## Conclusion
+
+การ deploy แบบเริ่มต้นที่จำเป็นมีเท่านี้ ซึ่งในที่นี้เรายังขาดการติดตั้ง database และ background process ซึ่งส่วนตัวแล้วไม่ยากเท่าไรแล้วหลังเราผ่านการ deploy แบบเริ่มต้นมาแล้ว ไว้มีโอกาสจะมาทำเพิ่มเติมให้
 
 ## References
 
