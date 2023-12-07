@@ -2,7 +2,7 @@
 layout: post
 title: Rails 7 Deployment with Ubuntu, Capistrano, Puma and Nginx
 categories: Posts
-tags: rails deploy ubuntu capistrano
+tags: rails deploy ubuntu capistrano puma nginx
 date: 2023-12-07 09:47 +0700
 ---
 ในที่นี้เราจะทำการ deploy rails ไปที่ ubuntu server กัน โดยเราจะใช้ stack ดังนี้:
