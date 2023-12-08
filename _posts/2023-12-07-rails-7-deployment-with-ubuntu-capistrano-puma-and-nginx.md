@@ -172,6 +172,32 @@ cat ~/.ssh/id_rsa.pub
 
 ทำตามขั้นตอนนี้ [Set up deploy keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys#set-up-deploy-keys) จากนั้นรันคำสั่ง `ssh -T git@github.com` อีกครั้ง ต้องขึ้นว่าสำเร็จ เป็นอันจบ
 
+## Setup Production Variables
+
+ก่อนที่จะ deploy ครั้งแรกให้เราเข้าไปสร้างโฟลเดอร์ตาม location ที่กำหนดตาม `set :deploy_to` ใน `config/deploy.rb` จากนั้นสร้างไฟล์ `.rbenv-vars`
+
+```sh
+$ mkdir [DEPLOY_TO]
+$ cd [DEPLOY_TO]
+$ vim .rbenv-vars
+```
+{:file='deploy@1.2.3.4'}
+
+จากนั้นเพิ่มตามนี้ลงไนไฟล์
+
+```
+SECRET_KEY_BASE=<random sequence> # use local `rails secret`
+RAILS_ENV=production
+```
+{:file='.rbenv-vars'}
+
+`SECRET_KEY_BASE` เราสามารถสร้างได้ด้วยคำสั่งนี้บนเครื่อง local
+
+```sh
+rails secret
+```
+{:file='Local Machine'}
+
 ## Setup Capistrano
 
 เราจะใช้ capistrano สำหรับ automate deployments เพื่อให้การ deploy ทำได้ง่าย ๆ
@@ -320,32 +346,6 @@ set :puma_workers, 5
 server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web]
 ```
 {:file='config/deploy/production.rb'}
-
-## Setup Production Variables
-
-ก่อนที่จะ deploy ครั้งแรกให้เราเข้าไปสร้างโฟลเดอร์ตาม location ที่กำหนดตาม `set :deploy_to` ใน `config/deploy.rb` จากนั้นสร้างไฟล์ `.rbenv-vars`
-
-```sh
-$ mkdir [DEPLOY_TO]
-$ cd [DEPLOY_TO]
-$ vim .rbenv-vars
-```
-{:file='deploy@1.2.3.4'}
-
-จากนั้นเพิ่มตามนี้ลงไนไฟล์
-
-```
-SECRET_KEY_BASE=<random sequence> # use local `rails secret`
-RAILS_ENV=production
-```
-{:file='.rbenv-vars'}
-
-`SECRET_KEY_BASE` เราสามารถสร้างได้ด้วยคำสั่งนี้บนเครื่อง local
-
-```sh
-rails secret
-```
-{:file='Local Machine'}
 
 ## Deploy
 
