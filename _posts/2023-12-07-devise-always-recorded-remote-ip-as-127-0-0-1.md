@@ -27,6 +27,10 @@ location @unicorn {
 
 เสร็จแล้ว restart nginx
 
+## Conclusion
+
+เป็นปัญหาที่การ config nginx ไม่เกี่ยวอะไรกับ devise
+
 ## References
 
 - [https://github.com/heartcombo/devise/issues/1186](https://github.com/heartcombo/devise/issues/1186)
