@@ -459,7 +459,7 @@ cap production deploy
 >
 > ```sh
 > cd /home
-> sudo chmod o=rx deploy/
+> sudo chmod o=rx $USER/
 > ```
 > {:file='deploy@1.2.3.4'}
 {: .prompt-danger }
@@ -474,7 +474,7 @@ cap production deploy
 > ให้ทำการแก้ไข permission ของโฟลเดอร์ appname เสียก่อน
 >
 > ```sh
-> sudo chown deploy:deploy -R /home/deploy/appname/
+> sudo chown $USER:$USER -R /home/$USER/appname/
 > ```
 > 
 > จากนั้นก็ทำการ restart puma
