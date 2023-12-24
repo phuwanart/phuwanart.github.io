@@ -210,7 +210,6 @@ group :development do
   gem "capistrano"
   gem "capistrano3-puma", "~> 5"
   gem "capistrano-rails"
-  gem "capistrano-rbenv"
   gem "ed25519"
 end
 ```
@@ -329,14 +328,12 @@ append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/syst
 # set :local_user, -> { `git config user.name`.chomp }
 
 # Default value for keep_releases is 5
-set :keep_releases, 5
+# set :keep_releases, 5
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
 
 set :rbenv_ruby, "3.2.2"
-
-set :puma_workers, 5
 ```
 {:file='config/deploy.rb'}
 
@@ -409,20 +406,6 @@ cap production puma:systemd:enable
 > {:file='deploy@1.2.3.4'}
 {: .prompt-danger }
 
-เสร็จแล้วให้รัน 
-
-```sh
-cap production puma:start
-```
-{:file='Local Machine'}
-
-และดูว่า puma ได้รันขึ้นมาแล้วด้วย
-
-```sh
-cap production puma:status
-```
-{:file='Local Machine'}
-
 ขั้นต่อไปรันคำสั่งนี้เพื่อเป็นการ config nginx
 
 ```sh
@@ -467,7 +450,7 @@ cap production deploy
 > และบางทีอาจจะเจอ 500 Internal Server Error ให้ไปดู log ของ `puma_error.log` หากเจอว่า
 > 
 > ```sh
-> Permission denied @ rb_io_reopen - /home/deploy/appname/shared/log/puma_access.log (Errno::EACCES)
+> Permission denied @ rb_io_reopen - /home/.../shared/log/puma_access.log (Errno::EACCES)
 > ```
 > {:file='deploy@1.2.3.4'}
 >
