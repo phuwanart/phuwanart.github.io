@@ -252,6 +252,59 @@ After this operation, 327 MB of additional disk space will be used.
 Do you want to continue? [Y/n] Y
 ```
 
+> อัพเดทสำหรับ **Ubuntu 24.04** พอมาถึงขั้นตอนนี้จะเจอ error ดังนี้:
+> 
+> ```sh
+> $ sudo apt install mysql-server
+> Reading package lists... Done
+> Building dependency tree... Done
+> Reading state information... Done
+> Some packages could not be installed. This may mean that you have
+> requested an impossible situation or if you are using the unstable
+> distribution that some required packages have not yet been created
+> or been moved out of Incoming.
+> The following information may help to resolve the situation:
+> 
+> The following packages have unmet dependencies:
+>  mysql-community-server : Depends: mysql-client (= 5.7.42-1ubuntu18.04) but it is not going to be installed
+>                           Depends: libaio1 (>= 0.3.93) but it is not installable
+> E: Unable to correct problems, you have held broken packages.
+> ```
+> เพราะว่าต้องการลง `libaio1` ก่อนโดยต้องลงเองดังนี้:
+> 
+> ```sh
+> curl -O http://launchpadlibrarian.net/646633572/libaio1_0.3.113-4_amd64.deb
+> sudo dpkg -i libaio1_0.3.113-4_amd64.deb
+> ```
+> 
+> จากนั้นก็จะเจอ error ที่ต้องติดตั้ง lib อีกตัวนึง:
+> 
+> ```sh
+> $ sudo apt install mysql-server
+> Reading package lists... Done
+> Building dependency tree... Done
+> Reading state information... Done
+> Some packages could not be installed. This may mean that you have
+> requested an impossible situation or if you are using the unstable
+> distribution that some required packages have not yet been created
+> or been moved out of Incoming.
+> The following information may help to resolve the situation:
+> 
+> The following packages have unmet dependencies:
+>  mysql-community-client : Depends: libtinfo5 (>= 6) but it is not installable
+> E: Unable to correct problems, you have held broken packages.
+> ```
+> 
+> ให้ติดตั้ง lib นี้ตามนี้:
+>
+> ```sh
+> curl -O http://launchpadlibrarian.net/648013231/libtinfo5_6.4-2_amd64.deb
+> sudo dpkg -i libtinfo5_6.4-2_amd64.deb
+> ```
+> 
+> พอติดตั้ง lib เสร็จก็น่าจะสามารถลง mysql 5.7 ผ่านแล้ว
+{: .prompt-danger }
+
 ทำตามขั้นตอนก็จะเห็นว่า mysql ที่ระบบลงให้เป็นเวอร์ชั่น 5 แล้ว:
 
 ```sh
@@ -317,5 +370,7 @@ sudo apt-mark hold mysql-apt-config
 ## References
 
 - https://www.claudiokuenzler.com/blog/991/install-mysql-5.7-on-ubuntu-20.04-focal-avoid-8.0-packages
+- https://www.devart.com/dbforge/mysql/how-to-install-mysql-on-ubuntu/
 - https://chrisjean.com/fix-apt-get-update-the-following-signatures-couldnt-be-verified-because-the-public-key-is-not-available/
 - https://itsfoss.com/key-is-stored-in-legacy-trusted-gpg/
+- https://community.localwp.com/t/installation-failed-in-ubuntu-24-04-lts/42579/3
