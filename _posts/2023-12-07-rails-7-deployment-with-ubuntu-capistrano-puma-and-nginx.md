@@ -5,6 +5,7 @@ categories: Posts
 tags: rails deploy ubuntu capistrano puma nginx
 date: 2023-12-07 09:47 +0700
 ---
+
 ในที่นี้เราจะทำการ deploy rails ไปที่ ubuntu server กัน โดยเราจะใช้ stack ดังนี้:
 
 - Ubuntu 22.04 LTS
