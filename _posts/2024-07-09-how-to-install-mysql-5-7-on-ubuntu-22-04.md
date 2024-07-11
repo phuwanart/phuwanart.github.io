@@ -10,7 +10,7 @@ date: 2024-07-09 11:40 +0700
 
 ## Getting Started
 
-โชคดีที่ mysql มี package repositories เป็นของตัวเอง ซึ่งสามารถไปโหลดได้จากที่นี่ [MySQL APT repository download page](https://dev.mysql.com/downloads/repo/apt/) ซึ่งจากที่ทดลองเวอร์ชั่นล่าสุด ก็มีสามารถเลือก mysql 5 ได้ เพราะฉะนั้นเวอร์ชั่นล่าสุดที่มี mysql 5 ให้เลือกลงได้นั้นคือ mysql-apt-config 0.8.15 ให้ทำการดาวน์โหลดตามนี้:
+โชคดีที่ mysql มี package repositories เป็นของตัวเอง ซึ่งสามารถไปโหลดได้จากที่นี่ [MySQL APT repository download page](https://dev.mysql.com/downloads/repo/apt/) ซึ่งจากที่ทดลองเวอร์ชั่นล่าสุด ก็ไม่มี mysql 5 เลือกติดตั้งได้แล้ว เพราะฉะนั้นเวอร์ชั่นล่าสุดที่มี mysql 5 ให้เลือกลงได้นั้นคือ mysql-apt-config 0.8.15 ให้ทำการดาวน์โหลดตามนี้:
 
 ```sh
 wget http://repo.mysql.com/mysql-apt-config_0.8.15-1_all.deb
