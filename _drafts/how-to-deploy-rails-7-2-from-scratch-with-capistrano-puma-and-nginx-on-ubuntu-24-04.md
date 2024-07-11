@@ -18,9 +18,11 @@ tags: rails ubuntu deploy nginx puma capistrano
 
 ## Configure Production Server
 
-หลังจากติดตั้ง ubuntu เสร็จ ถ้าเป็นเวอร์ชั่น 22.04 นั้นเราสามารถที่จะ ssh เข้าไปได้เลย แต่พอมาเป็น 24.04 กลับทำไม่ได้ ซึ่งเราจะต้องตั้งค่า ssh เสียก่อน:[^setup-ssh]
+### Setup Firewall
 
-[^setup-ssh]: [Setting Up and Securing SSH on Ubuntu 22.04: A Comprehensive Guide](https://serverastra.com/docs/Tutorials/Setting-Up-and-Securing-SSH-on-Ubuntu-22.04%253A-A-Comprehensive-Guide)
+หลังจากติดตั้ง ubuntu เสร็จ ถ้าเป็นเวอร์ชั่น 22.04 นั้นเราสามารถที่จะ ssh เข้าไปได้เลย แต่พอมาเป็น 24.04 กลับทำไม่ได้ ซึ่งเราจะต้องตั้งค่า firewall เสียก่อน:[^setup-firewall]
+
+[^setup-firewall]: [Setting Up and Securing SSH on Ubuntu 22.04: A Comprehensive Guide](https://serverastra.com/docs/Tutorials/Setting-Up-and-Securing-SSH-on-Ubuntu-22.04%253A-A-Comprehensive-Guide)
 
 ```sh
 sudo apt install openssh-server
@@ -67,7 +69,7 @@ sudo apt install git-core curl zlib1g-dev build-essential libssl-dev libreadline
 ```
 {:file='root@1.2.3.4'}
 
-## Create Deploy User
+### Create Deploy User
 
 เราจะสร้าง user บน server เพื่อใช้ deploy rails app ของเรา ในที่นี้ให้ชื่อ `deploy` ซึ่งในความคิดผมนั้น อาจจะเอาชื่อ project ชื่อ app มาใช้เป็นชื่อ user ก็ได้ เพราะว่าใน server ของเรา อาจจะมีหลาย ๆ ตัว deploy ไว้ด้วยกัน เพื่อให้ง่ายต่อการจัดการ
 
@@ -405,6 +407,13 @@ append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/syst
 set :rbenv_ruby, "3.3.4"
 ```
 
+และสุดท้ายแก้ไขไฟล์ `config/deploy/production.rb`:
+
+```ruby
+server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web]
+```
+{:file='config/deploy/production.rb'}
+
 ## Setup Production Variables
 
 ก่อนที่จะ deploy ครั้งแรกให้เราเข้าไปสร้างโฟลเดอร์ตาม location ที่กำหนดตาม `set :deploy_to` ใน `config/deploy.rb` จากนั้นสร้างไฟล์ `.rbenv-vars`:
@@ -424,11 +433,70 @@ RAILS_ENV=production
 ```
 {:file='.rbenv-vars'}
 
-`SECRET_KEY_BASE` เราสามารถสร้างได้ด้วยคำสั่งนี้บนเครื่อง local:
+ซึ่ง `SECRET_KEY_BASE` เราสามารถสร้างได้ด้วยคำสั่งนี้บนเครื่อง local:
 
 ```sh
 rails secret
 ```
 {:file='Local Machine'}
+
+## Deploy
+
+เริ่มแรกให้รัน `deploy:check` ก่อน เพื่อเป็นการสร้างโครงสร้างของโฟลเดอร์บนเครื่องที่เราจะ deploy:
+
+```sh
+cap production deploy:check
+```
+{:file='Local Machine'}
+
+แน่นอนว่ามาถึงตรงนี้จะมี error ว่าไม่ไฟล์อย่าง `database.yml`, `master.key`, `puma.rb` ซึ่งเป็นรายชื่อไฟล์ที่เราทำหนดใน `linked_files` นั่นแหละ ให้เราทำการ copy ไปไว้ในเครื่อง deploy ก่อน:
+
+```sh
+scp config/database.yml [DEPLOY_USER]@[PRODUCTION_IP]:[DEPLOY_TO]/shared/config/database.yml
+scp config/master.key [DEPLOY_USER]@[PRODUCTION_IP]:[DEPLOY_TO]/shared/config/master.key
+scp config/puma.rb [DEPLOY_USER]@[PRODUCTION_IP]:[DEPLOY_TO]/shared/config/puma.rb
+```
+{:file='Local Machine'}
+
+หรือจะสร้าง task ไว้ใช้:
+
+```ruby
+desc 'Copy linked files'
+task :copy_linked_files do
+  on roles(:app) do |server|
+    user = fetch(:user)
+    path = fetch(:deploy_to)
+    linked_files = fetch(:linked_files)
+
+    cmd = []
+    linked_files.each do |linked_file|
+      cmd << "scp #{linked_file} #{user}@#{server.hostname}:#{path}/shared/#{linked_file}"
+    end
+    exec cmd.join('&&')
+  end
+end
+```
+{:file='lib/capistrano/tasks/copy_linked_files.rake'}
+
+เสร็จแล้วเราสามารถรับ task นี้ได้เลยด้วย:
+
+```sh
+cap production copy_linked_files
+```
+{:file='Local Machine'}
+
+หลังจากรัน `deploy:check` ผ่านแล้ว ให้รัน `puma:install` ต่อเลย:
+
+```sh
+cap production puma:install
+```
+{:file='Local Machine'}
+
+ตั้งแต่ rails 7.1 ได้ตั้งค่า `force_ssl` ใน production เป็น `true` เป็นค่าเริ่มต้น ในช่วงแรกที่เรา deploy อาจจะตั้งค่าให้เป็น `false` ก่อน แล้วค่อยเปลี่ยนกลับตอนเรา setup ssl ในตอนท้าย:
+
+```ruby
+config.force_ssl = false
+```
+{:file='config/environments/production.rb'}
 
 ## References
