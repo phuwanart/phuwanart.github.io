@@ -1,42 +1,23 @@
 ---
 layout: post
-title: How to deploy Rails 7.2 from scratch with Capistrano, Puma and Nginx on Ubuntu 24.04
+title: How to deploy Rails 7.2 from scratch with Capistrano, Puma and Nginx on Ubuntu
+  24.04
 categories: Posts
 tags: rails ubuntu deploy nginx puma capistrano
+date: 2024-07-12 16:36 +0700
 ---
-
 ครั้งก่อนได้เขียนเรื่องนี้ไปรอบหนึ่งแล้ว แต่หลังจากที่ rails ออกเวอร์ชั่น 7.1 ก็มีอะไรเปลี่ยนแปลงไปนิดหน่อย ประกอบกับตอนนี้ 7.2 ก็ออกตัวเบต้าแล้ว และมี ubuntu ที่ออกเวอร์ชั่น 24.04 ด้วย แต่หลังจากที่ไปลองเอาที่เขียนก่อนหน้าไปทำการลงดูก็พบว่ามีอะไรเปลี่ยนไปอยู่เหมือนกัน เลยคิดว่าเอามาเขียนอีกรอบดีกว่า
 
 ในหัวข้อนี้จะประกอบไปด้วย tech stack ดังนี้:
 
 - Ubuntu 24.04 LTS (VirtualBox)
 - Ruby 3.3.4
-- Rails 7.2.0.beta2
+- Rails 7.2.0.beta3
 - Capistrano 3.19.1
 - Puma 6
 - Nginx
 
 ## Configure Production Server
-
-### Setup Firewall
-
-หลังจากติดตั้ง ubuntu เสร็จ ถ้าเป็นเวอร์ชั่น 22.04 นั้นเราสามารถที่จะ ssh เข้าไปได้เลย แต่พอมาเป็น 24.04 กลับทำไม่ได้ ซึ่งเราจะต้องตั้งค่า firewall เสียก่อน:[^setup-firewall]
-
-[^setup-firewall]: [Setting Up and Securing SSH on Ubuntu 22.04: A Comprehensive Guide](https://serverastra.com/docs/Tutorials/Setting-Up-and-Securing-SSH-on-Ubuntu-22.04%253A-A-Comprehensive-Guide)
-
-```sh
-sudo apt install openssh-server
-sudo ufw status
-sudo ufw enable
-sudo ufw allow ssh
-sudo ufw allow http
-sudo ufw allow https
-sudo systemctl restart ssh
-sudo systemctl status ssh
-```
-{:file='Remote Server'}
-
-หลังจากเสร็จแล้วเราจะใช้เครื่อง local ในการ remote เข้ามาที่ server ให้เหมือนสภาพจริง ๆ ที่เราจะทำงานกัน
 
 ให้เราติดตั้ง `net-tools` ซะก่อน เพื่อจะได้ดู IP ของ server ได้จาก `ifconfig`:
 
@@ -68,6 +49,26 @@ sudo apt update && sudo apt upgrade -y && sudo apt-get autoremove && sudo reboot
 sudo apt install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev dirmngr gnupg apt-transport-https ca-certificates
 ```
 {:file='root@1.2.3.4'}
+
+### Setup Firewall
+
+หลังจากติดตั้ง ubuntu เสร็จ ถ้าเป็นเวอร์ชั่น 22.04 นั้นเราสามารถที่จะ ssh เข้าไปได้เลย แต่พอมาเป็น 24.04 กลับทำไม่ได้ ซึ่งเราจะต้องตั้งค่า firewall เสียก่อน:[^setup-firewall]
+
+[^setup-firewall]: [Setting Up and Securing SSH on Ubuntu 22.04: A Comprehensive Guide](https://serverastra.com/docs/Tutorials/Setting-Up-and-Securing-SSH-on-Ubuntu-22.04%253A-A-Comprehensive-Guide)
+
+```sh
+sudo apt install openssh-server
+sudo ufw status
+sudo ufw enable
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
+sudo systemctl restart ssh
+sudo systemctl status ssh
+```
+{:file='Remote Server'}
+
+หลังจากเสร็จแล้วเราจะใช้เครื่อง local ในการ remote เข้ามาที่ server ให้เหมือนสภาพจริง ๆ ที่เราจะทำงานกัน
 
 ### Create Deploy User
 
@@ -230,8 +231,17 @@ sudo systemctl enable redis-server
 
 ```sh
 rails new my_app
+ed my_app
+bin/rails g controller main index
 ```
 {:file='Local Machine'}
+
+แล้วกำหนดหน้าแรกใน `config/routes.rb`:
+
+```ruby
+root "main#index"
+```
+{:file='config/routes.rb'}
 
 จากนั้นก็เอา app นี้ขึ้น github ให้เรียบร้อย
 
@@ -442,6 +452,14 @@ rails secret
 
 ## Deploy
 
+> ตั้งแต่ rails 7.1 ได้ตั้งค่า `force_ssl` ใน production เป็น `true` เป็นค่าเริ่มต้น ในช่วงแรกที่เรา deploy อาจจะตั้งค่าให้เป็น `false` ก่อน แล้วค่อยเปลี่ยนกลับตอนเรา setup ssl ในตอนท้าย:
+> 
+> ```ruby
+> config.force_ssl = false
+> ```
+> {:file='config/environments/production.rb'}
+{: .prompt-info }
+
 เริ่มแรกให้รัน `deploy:check` ก่อน เพื่อเป็นการสร้างโครงสร้างของโฟลเดอร์บนเครื่องที่เราจะ deploy:
 
 ```sh
@@ -478,7 +496,7 @@ end
 ```
 {:file='lib/capistrano/tasks/copy_linked_files.rake'}
 
-เสร็จแล้วเราสามารถรับ task นี้ได้เลยด้วย:
+เสร็จแล้วเราสามารถรัน task นี้ได้เลย:
 
 ```sh
 cap production copy_linked_files
@@ -492,11 +510,290 @@ cap production puma:install
 ```
 {:file='Local Machine'}
 
-ตั้งแต่ rails 7.1 ได้ตั้งค่า `force_ssl` ใน production เป็น `true` เป็นค่าเริ่มต้น ในช่วงแรกที่เรา deploy อาจจะตั้งค่าให้เป็น `false` ก่อน แล้วค่อยเปลี่ยนกลับตอนเรา setup ssl ในตอนท้าย:
+เป็นการติดตั้ง Puma systemd service หลังจากติดตั้งผ่านให้ remote เข้าไปแก้ไข `puma.rb` เสียก่อน โดยไฟล์จะอยู่ที่ `/home/[DEPLOY_TO]/shared/config/puma.rb`:
 
 ```ruby
-config.force_ssl = false
+#!/usr/bin/env puma
+
+directory "/home/[DEPLOY_TO]/current"
+rackup "/home/[DEPLOY_TO]/current/config.ru"
+environment "production"
+
+tag ""
+
+pidfile "/home/[DEPLOY_TO]/shared/tmp/pids/puma.pid"
+state_path "/home/[DEPLOY_TO]/shared/tmp/pids/puma.state"
+stdout_redirect "/home/[DEPLOY_TO]/shared/log/puma_access.log", "/home/[DEPLOY_TO]/shared/log/puma_error.log", true
+
+threads 0, 16
+
+bind "unix:///home/[DEPLOY_TO]/shared/tmp/sockets/puma.sock"
+
+workers 5
+
+restart_command "bundle exec puma"
+
+prune_bundler
+
+on_restart do
+  puts "Refreshing Gemfile"
+  ENV["BUNDLE_GEMFILE"] = ""
+end
+```
+{:file='/home/[DEPLOY_TO]/shared/config/puma.rb'}
+
+> ให้แทนที่ `[DEPLOY_TO]` ด้วยที่อยู่ของ app ตัวอย่างเช่น `deploy/app_name`
+{: .prompt-info }
+
+> ตรวจดู `/home/[DEPLOY_TO]/shared/config/database.yml` เสียก่อน เราจะต้อง config ในส่วนของ production ให้เข้ากับ database ที่เราเลือกใช้ ในที่นี้เราใช้ SQLite ดังนั้นจึงต้องระบุที่ที่จะเก็บไฟล์ `production.sqlite3` ด้วยตัวอย่างในที่นี้เช่น:
+> 
+> ```yaml
+> production:
+>   <<: *default
+>   database: /home/[DEPLOY_TO]/shared/storage/production.sqlite3
+> ```
+> {:file='/home/[DEPLOY_TO]/shared/config/database.yml'}
+{: .prompt-warning }
+
+จากนั้นก็ทำการ deploy เป็นครั้งแรกให้ผ่านก่อน:
+
+```sh
+cap production deploy
+```
+{:file='Local Machine'}
+
+หากเราดูสถานะของ puma ก็น่าจะ active ด้วย:
+
+```sh
+cap production puma:status
+```
+{:file='Local Machine'}
+
+ต่อไปจะเป็นการตั้งค่า nginx บน remote server กันโดยจะแก้ที่ไฟล์ default นี้:
+
+```sh
+sudo vi /etc/nginx/sites-enabled/default
+```
+{:file='root@1.2.3.4'}
+
+ลบสิ่งที่อยู่ใน default ทั้งหมดแล้วแทนที่ด้วย:
+
+```nginx
+upstream puma_my_app_deploy {
+  server unix:///home/[DEPLOY_TO]/shared/tmp/sockets/puma.sock fail_timeout=0;
+}
+
+server {
+  listen 80;
+  server_name localhost my_app.local;
+  root /home/[DEPLOY_TO]/current/public;
+  try_files $uri/index.html $uri @puma_my_app_deploy;
+
+  client_max_body_size 4G;
+  keepalive_timeout 10;
+
+  error_page 500 502 504 /500.html;
+  error_page 503 @503;
+
+  location @puma_my_app_deploy {
+    proxy_http_version 1.1;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Host $host;
+    proxy_redirect off;
+    proxy_headers_hash_max_size 1024;
+    proxy_headers_hash_bucket_size 128;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header X-Forwarded-Proto http;
+    proxy_pass http://puma_my_app_deploy;
+    # limit_req zone=one;
+    access_log /home/[DEPLOY_TO]/shared/log/nginx.access.log;
+    error_log /home/[DEPLOY_TO]/shared/log/nginx.error.log;
+  }
+
+  location ^~ /assets/ {
+    gzip_static on;
+    expires max;
+    add_header Cache-Control public;
+  }
+
+  location = /50x.html {
+    root html;
+  }
+
+  location = /404.html {
+    root html;
+  }
+
+  location @503 {
+    error_page 405 = /system/maintenance.html;
+    if (-f $document_root/system/maintenance.html) {
+      rewrite ^(.*)$ /system/maintenance.html break;
+    }
+    rewrite ^(.*)$ /503.html break;
+  }
+
+  if ($request_method !~ ^(GET|HEAD|PUT|PATCH|POST|DELETE|OPTIONS)$ ){
+    return 405;
+  }
+
+  if (-f $document_root/system/maintenance.html) {
+    return 503;
+  }
+}
+```
+{:file='/etc/nginx/sites-enabled/default'}
+
+> `puma_my_app_deploy` สามารถตั้งเป็นอะไรก็ได้
+{: .prompt-tip }
+
+จากนั้นรันเทสของ nginx ดูว่าไม่มีปัญหาอะไร:
+
+```sh
+sudo nginx -t
+```
+{:file='root@1.2.3.4'}
+
+แล้วทำการ reload, restart สักครั้ง:
+
+```sh
+sudo service nginx reload
+sudo service nginx restart
+```
+{:file='root@1.2.3.4'}
+
+แล้วไปที่ browser แล้วไปที่ PRODUCTION_IP:
+
+
+![](https://i.imgur.com/WjQdXBX.png)
+
+
+> บางที่เราอาจจะเจอกับ 503 bad gateway ซึ่งเมื่อดู log แล้วจะเป็นการฟ้องเรื่อง permission
+> 
+> ```sh
+> tail -f /var/log/nginx/error.log
+>
+> ...failed (13: Permission denied)...
+> ```
+> {:file='deploy@1.2.3.4'}
+>
+> ให้เราทำการแก้ permission ของ deploy user ได้ด้วยคำสั่งนี้
+>
+> ```sh
+> cd /home
+> sudo chmod o=rx $USER/
+> ```
+> {:file='deploy@1.2.3.4'}
+{: .prompt-danger }
+
+> และบางทีอาจจะเจอ 500 Internal Server Error ให้ไปดู log ของ `puma_error.log` หากเจอว่า
+> 
+> ```sh
+> Permission denied @ rb_io_reopen - /home/.../shared/log/puma_access.log (Errno::EACCES)
+> ```
+> {:file='deploy@1.2.3.4'}
+>
+> ให้ทำการแก้ไข permission ของโฟลเดอร์ appname เสียก่อน
+>
+> ```sh
+> sudo chown $USER:$USER -R /home/$USER/appname/
+> ```
+> 
+> จากนั้นก็ทำการ restart puma
+> 
+> {:file='deploy@1.2.3.4'}
+> ```sh
+> cap production puma:restart
+> ```
+> {:file='Local Machine'}
+{: .prompt-danger }
+
+มาถึงตรงนี้เราก็พร้อมที่จะเอา domain ชี้มาที่ server เราได้แล้ว ถ้าทำเรียบร้อยแล้ว ก็มาเริ่มในขั้นต่อไปกันเลย
+
+เริ่มจากแก้ไข nginx config ก่อน:
+
+```nginx
+upstream puma_my_app_deploy {
+  server unix:///home/[DEPLOY_TO]/shared/tmp/sockets/puma.sock fail_timeout=0;
+}
+
+server {
+  server_name mydomain.com;
+  root /home/[DEPLOY_TO]/current/public;
+
+  access_log /home/[DEPLOY_TO]/current/log/nginx.access.log;
+  error_log /home/[DEPLOY_TO]/current/log/nginx.error.log info;
+
+  location ^~ /assets/ {
+    gzip_static on;
+    expires max;
+    add_header Cache-Control public;
+  }
+
+  try_files $uri/index.html $uri @puma_my_app_deploy;
+
+  location @puma_my_app_deploy {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Ssl on; # Optional
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header X-Forwarded-Host $host;
+
+    proxy_redirect off;
+
+    proxy_pass http://puma_my_app_deploy;
+  }
+
+  location /cable {
+    proxy_pass http://puma_my_app_deploy;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade "websocket";
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_redirect off;
+  }
+
+  error_page 500 502 503 504 /500.html;
+  client_max_body_size 100M;
+  keepalive_timeout 10;
+}
+```
+{:file='/etc/nginx/sites-enabled/default'}
+
+ที่สำคัญก็คือแก้ `server_name` เป็น domain name ที่ต้องการ
+
+จากนั้นก็แก้ไข `config.force_ssl` กลับไปเป็น `true` เหมือนเดิม:
+
+```ruby
+config.force_ssl = true
 ```
 {:file='config/environments/production.rb'}
+
+ต่อไปก็เป็นการ Setup LetsEncrypt:
+
+```sh
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx
+```
+{:file='root@1.2.3.4'}
+
+ทำตามขั้นตอนที่ขึ้นมา เลือก domain ที่เราต้องการให้เป็น https
+
+จากนั้นก็ให้เรา commit และ push ส่ิงที่เราแก้ไขขึ้น github ให้เรียบร้อยจากนั้นก็ทำการ deploy อีกครั้ง:
+
+```sh
+cap production deploy
+```
+{:file='Local Machine'}
+
+
+## Conclusion
+
+ยังคงเป็นการ deploy แบบง่าย ๆ อยู่ ยังคงต้องทำการติดตั้ง database และ background process กันต่อ
 
 ## References
