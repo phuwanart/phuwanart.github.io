@@ -699,10 +699,10 @@ sudo service nginx restart
 > ```sh
 > sudo chown $USER:$USER -R /home/$USER/appname/
 > ```
+> {:file='deploy@1.2.3.4'}
 > 
 > จากนั้นก็ทำการ restart puma
 > 
-> {:file='deploy@1.2.3.4'}
 > ```sh
 > cap production puma:restart
 > ```
