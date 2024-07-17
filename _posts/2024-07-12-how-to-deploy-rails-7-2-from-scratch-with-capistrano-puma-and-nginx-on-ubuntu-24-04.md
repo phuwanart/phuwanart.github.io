@@ -182,10 +182,16 @@ open http://1.2.3.4
 ```
 {:file='Local Machine'}
 
-เจอข้อความต้อนรับก็เป็นอันเรียบร้อย ซึ่งตอนนี้เราจะยังไม่ทำอะไรกับมันมาก ไปต่อกันเลย:
+เจอข้อความต้อนรับก็เป็นอันเรียบร้อย:
 
 ![](https://i.imgur.com/MY8Jl29.png)
 
+จากนั้นก็ลบ default ของ nginx ได้เลย:
+
+```sh
+sudo rm /etc/nginx/sites-enabled/default
+```
+{:file='deploy@1.2.3.4'}
 
 
 ## Install Redis
@@ -569,17 +575,16 @@ cap production puma:status
 ```
 {:file='Local Machine'}
 
-ต่อไปจะเป็นการตั้งค่า nginx บน remote server กันโดยจะแก้ที่ไฟล์ default นี้:
+ต่อไปเราจะสร้างไฟล์ config nginx สำหรับ app ของเราโดยจะสร้าไว้ใน `/etc/nginx/sites-available/` ชื่อไฟล์เป็นอะไรก็ได้ ในที่นี้จะใช้รูปแบบ `[app_name]_puma_production`:
 
 ```sh
-sudo vi /etc/nginx/sites-enabled/default
+sudo vi /etc/nginx/sites-available/my_app_puma_production
 ```
-{:file='root@1.2.3.4'}
 
-ลบสิ่งที่อยู่ใน default ทั้งหมดแล้วแทนที่ด้วย:
+โดยที่มีการตั้งค่าตามนี้ก่อน:
 
 ```nginx
-upstream puma_my_app_deploy {
+upstream my_app_puma_production {
   server unix:///home/[DEPLOY_TO]/shared/tmp/sockets/puma.sock fail_timeout=0;
 }
 
@@ -587,7 +592,7 @@ server {
   listen 80;
   server_name localhost my_app.local;
   root /home/[DEPLOY_TO]/current/public;
-  try_files $uri/index.html $uri @puma_my_app_deploy;
+  try_files $uri/index.html $uri @my_app_puma_production;
 
   client_max_body_size 4G;
   keepalive_timeout 10;
@@ -595,7 +600,7 @@ server {
   error_page 500 502 504 /500.html;
   error_page 503 @503;
 
-  location @puma_my_app_deploy {
+  location @my_app_puma_production {
     proxy_http_version 1.1;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -606,7 +611,7 @@ server {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "Upgrade";
     proxy_set_header X-Forwarded-Proto http;
-    proxy_pass http://puma_my_app_deploy;
+    proxy_pass http://my_app_puma_production;
     # limit_req zone=one;
     access_log /home/[DEPLOY_TO]/shared/log/nginx.access.log;
     error_log /home/[DEPLOY_TO]/shared/log/nginx.error.log;
@@ -645,8 +650,14 @@ server {
 ```
 {:file='/etc/nginx/sites-enabled/default'}
 
-> `puma_my_app_deploy` สามารถตั้งเป็นอะไรก็ได้
+> อย่าลืมแก้ไข `my_app_puma_production` ในไฟล์นี้เป็นชื่อที่ต้องการ แต่ก็แนะนำให้เป็นรูปแบบนี้ `[app_name]_puma_production`
 {: .prompt-tip }
+
+เสร็จแล้วก็สร้าง symlink ของการตั้งค่านี้ไปที่ site-enabled:
+
+```sh
+sudo ln -s /etc/nginx/sites-available/my_app_puma_production /etc/nginx/sites-enabled/my_app_puma_production
+```
 
 จากนั้นรันเทสของ nginx ดูว่าไม่มีปัญหาอะไร:
 
@@ -714,12 +725,12 @@ sudo service nginx restart
 เริ่มจากแก้ไข nginx config ก่อน:
 
 ```nginx
-upstream puma_my_app_deploy {
+upstream my_app_puma_production {
   server unix:///home/[DEPLOY_TO]/shared/tmp/sockets/puma.sock fail_timeout=0;
 }
 
 server {
-  server_name mydomain.com;
+  server_name mydomain.com www.mydomain.com;
   root /home/[DEPLOY_TO]/current/public;
 
   access_log /home/[DEPLOY_TO]/current/log/nginx.access.log;
@@ -731,9 +742,9 @@ server {
     add_header Cache-Control public;
   }
 
-  try_files $uri/index.html $uri @puma_my_app_deploy;
+  try_files $uri/index.html $uri @my_app_puma_production;
 
-  location @puma_my_app_deploy {
+  location @my_app_puma_production {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -743,11 +754,11 @@ server {
 
     proxy_redirect off;
 
-    proxy_pass http://puma_my_app_deploy;
+    proxy_pass http://my_app_puma_production;
   }
 
   location /cable {
-    proxy_pass http://puma_my_app_deploy;
+    proxy_pass http://my_app_puma_production;
     proxy_http_version 1.1;
     proxy_set_header Upgrade "websocket";
     proxy_set_header Connection "Upgrade";
@@ -763,7 +774,7 @@ server {
   keepalive_timeout 10;
 }
 ```
-{:file='/etc/nginx/sites-enabled/default'}
+{:file='/etc/nginx/sites-enabled/my_app_puma_production'}
 
 ที่สำคัญก็คือแก้ `server_name` เป็น domain name ที่ต้องการ
 
