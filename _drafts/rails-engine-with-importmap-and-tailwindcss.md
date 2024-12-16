@@ -11,7 +11,7 @@ tags: [rails, rails engine, importmap, tailwindcss]
 rails plugin new blorgh --mountable
 ```
 
-## Importmap engine configuration
+## Importmap configuration
 
 ```ruby
 spec.add_dependency 'importmap-rails'
@@ -198,7 +198,7 @@ open browser: `http://localhost:3000/blorgh`
 ![](https://i.imgur.com/lTQZedb.png)
 
 
-## TailwindCSS engine configuration
+## TailwindCSS configuration
 
 ```ruby
 spec.add_dependency "tailwindcss-rails"

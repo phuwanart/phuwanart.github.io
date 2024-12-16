@@ -5,9 +5,13 @@ categories: Posts
 tags: [rails, rails engine, vite]
 ---
 
+## Create engine
+
 ```sh
 rails plugin new my_engine --mountable
 ```
+
+## Vite configuration
 
 ```ruby
 spec.add_dependency 'vite_rails'
@@ -162,12 +166,14 @@ end
 ```
 {:file='app/helpers/my_engine/application_helper.rb'}
 
+***Create host app***
+
 ```sh
 rails new demo
 ```
 
 ```ruby
-gem "my_engine", path: "../engines"
+gem "my_engine", path: "path/to/engine"
 ```
 {:file='Gemfile'}
 
