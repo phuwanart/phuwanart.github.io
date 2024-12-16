@@ -2,9 +2,12 @@
 layout: post
 title: Rails Engine with Vite
 categories: Posts
-tags: [rails, rails engine, vite]
+tags:
+- rails
+- rails engine
+- vite
+date: 2024-12-16 13:57 +0700
 ---
-
 ## Create engine
 
 ```sh

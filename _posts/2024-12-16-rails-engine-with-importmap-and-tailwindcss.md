@@ -2,9 +2,13 @@
 layout: post
 title: Rails Engine with Importmap and TailwindCSS
 categories: Posts
-tags: [rails, rails engine, importmap, tailwindcss]
+tags:
+- rails
+- rails engine
+- importmap
+- tailwindcss
+date: 2024-12-16 13:57 +0700
 ---
-
 ## Create engine
 
 ```bash
