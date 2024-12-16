@@ -95,7 +95,26 @@ end
 ```
 {:file='lib/my_engine/engine.rb'}
 
-
+```json
+{
+  "all": {
+    "sourceCodeDir": "app/frontend",
+    "watchAdditionalPaths": [],
+    "publicOutputDir": "my_engine-assets"
+  },
+  "development": {
+    "autoBuild": true,
+    "publicOutputDir": "my_engine-assets-dev",
+    "port": 3036
+  },
+  "test": {
+    "autoBuild": true,
+    "publicOutputDir": "my_engine-assets-test",
+    "port": 3037
+  }
+}
+```
+{:file='config/vite.json'}
 
 ```sh
 rails g controller home index
