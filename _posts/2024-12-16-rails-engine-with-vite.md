@@ -311,7 +311,7 @@ app.mount('#app')
 
 ### Pass data from Rails to Vue components
 
-```vue
+```html
 <template>
   <div>
     <h1>{{ msg }}</h1>
