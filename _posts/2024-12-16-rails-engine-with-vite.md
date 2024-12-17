@@ -8,6 +8,7 @@ tags:
 - vite
 date: 2024-12-16 13:57 +0700
 ---
+
 ## Create engine
 
 ```sh
@@ -189,6 +190,74 @@ mount MyEngine::Engine => "/my_engine"
 ![](https://i.imgur.com/GdtXnER.png)
 
 
+## TailwindCSS configuration
+
+```sh
+yarn add -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+```js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./app/views/**/*.rb",
+    "./app/views/**/*.html.erb",
+    "./app/views/layouts/*.html.erb",
+    "./app/helpers/**/*.rb",
+    "./app/assets/stylesheets/**/*.css",
+    "./app/frontend/**/*.js",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+{:file='tailwind.config.js'}
+
+```sh
+touch app/frontend/entrypoints/application.css
+```
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+{:file='app/frontend/entrypoints/application.css'}
+
+```diff
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My engine</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag 'application' %>
++   <%= vite_stylesheet_tag 'application', data: { "turbo-track": "reload" } %>
+    <%= stylesheet_link_tag    "my_engine/application", media: "all" %>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>
+```
+{:file='app/views/layouts/my_engine/application.html.erb'}
+
+```erb
+<h1 class="font-bold text-4xl text-indigo-500">Home#index</h1>
+<p>Find me in app/views/my_engine/home/index.html.erb</p>
+```
+{:file='app/views/my_engine/home/index.html.erb'}
+
+
+![](https://i.imgur.com/OFoNtcK.png)
+
+
 ## References
 
 - https://github.com/maglevhq/maglev-core
+- https://primevise.com/blog/ruby-on-rails-boilerplate-vite-tailwind-stimulus/
