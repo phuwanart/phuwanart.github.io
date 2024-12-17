@@ -311,10 +311,10 @@ app.mount('#app')
 
 ### Pass data from Rails to Vue components
 
-```html
+```
 <template>
   <div>
-    <h1>{{ msg }}</h1>
+    {% raw %}<h1>{{ msg }}</h1>{% endraw -%}
   </div>
 </template>
 
