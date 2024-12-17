@@ -256,8 +256,134 @@ touch app/frontend/entrypoints/application.css
 
 ![](https://i.imgur.com/OFoNtcK.png)
 
+## Vue configuration
+
+```sh
+yarn add -D vue @vitejs/plugin-vue
+```
+
+```js
+import { defineConfig } from 'vite'
+import RubyPlugin from 'vite-plugin-ruby'
+import vue from '@vitejs/plugin-vue' // <-------- add this
+
+export default defineConfig({
+  plugins: [
+    RubyPlugin(),
+    vue() // <-------- add this
+  ],
+})
+```
+
+```vue
+<template>
+  <div>
+    <h1>Vue App!</h1>
+  </div>
+</template>
+
+<script setup>
+
+</script>
+
+<style lang="css" scoped>
+  h1 {
+    color: red;
+  }
+</style>
+```
+{:file='app/frontend/components/App.vue'}
+
+
+```erb
+<div id="app"></div>
+```
+{:file='app/views/my_engine/home/index.html.erb'}
+
+```js
+import { createApp } from 'vue'
+import App from '../components/App.vue'
+
+const app = createApp(App)
+app.mount('#app')
+```
+{:file='app/frontend/entrypoints/application.js'}
+
+### Pass data from Rails to Vue components
+
+```vue
+<template>
+  <div>
+    <h1>{{ msg }}</h1>
+  </div>
+</template>
+
+<script setup>
+defineProps({
+  msg: String
+})
+</script>
+
+<style lang="css" scoped>
+  h1 {
+    color: red;
+  }
+</style>
+```
+{:file='app/frontend/components/App.vue'}
+
+```ruby
+module MyEngine
+  class HomeController < ApplicationController
+    def index
+      @msg = "Hello Vue on Rails!"
+    end
+  end
+end
+```
+{:file='app/controllers/my_engine/home_controller.rb'}
+
+```erb
+<%=
+  content_tag(
+    :div,
+    id: 'appProps',
+    data: {
+      props: {
+        msg: @msg
+      }
+    }.as_json
+  ) {}
+%>
+<div id="app"></div>
+```
+{:file='app/views/my_engine/home/index.html.erb'}
+
+it will render the div below on the page.
+
+```html
+<div 
+    id="appProps" 
+    data-props="{&quot;msg&quot;:&quot;Hello Vue on Rails!&quot;}">
+</div>
+```
+
+```js
+import { createApp } from 'vue'
+import App from '../components/App.vue'
+
+const appProps = document.getElementById('appProps').dataset.props
+const app = createApp(App, JSON.parse(appProps))
+app.mount('#app')
+```
+{:file='app/frontend/entrypoints/application.js'}
+
+
+![](https://i.imgur.com/FeJPJJ7.png)
+
 
 ## References
 
 - https://github.com/maglevhq/maglev-core
-- https://primevise.com/blog/ruby-on-rails-boilerplate-vite-tailwind-stimulus/
+- https://primevise.com/blog/ruby-on-rails-boilerplate-vite-tailwind-stimulus
+- https://dev.to/kevinluo201/use-viterails-to-use-vue-sfcsingle-file-component-vue-in-rails7-51bn
