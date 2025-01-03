@@ -2,7 +2,6 @@
 layout: post
 title: Rails Engine with Vite
 categories:
-- Posts
 - Notes
 tags:
 - rails

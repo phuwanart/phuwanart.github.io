@@ -2,7 +2,6 @@
 layout: post
 title: Rails Engine with Importmap and TailwindCSS
 categories:
-- Posts
 - Notes
 tags:
 - rails

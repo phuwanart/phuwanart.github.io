@@ -1,8 +1,7 @@
 ---
 layout: post
 title: Deploy Solid Queue with Capistrano
-categories: 
-- Posts
+categories:
 - Notes
 tags:
 - rails
