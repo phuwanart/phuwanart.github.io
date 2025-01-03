@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Rails Engine with Vite
-categories: Posts
+categories:
+- Posts
+- Notes
 tags:
 - rails
 - rails engine
@@ -362,8 +364,8 @@ end
 it will render the div below on the page.
 
 ```html
-<div 
-    id="appProps" 
+<div
+    id="appProps"
     data-props="{&quot;msg&quot;:&quot;Hello Vue on Rails!&quot;}">
 </div>
 ```

@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Rails Engine with Importmap and TailwindCSS
-categories: Posts
+categories:
+- Posts
+- Notes
 tags:
 - rails
 - rails engine
