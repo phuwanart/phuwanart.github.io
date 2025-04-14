@@ -78,6 +78,11 @@ bun add @tailwindcss/forms @tailwindcss/aspect-ratio
 ```
 {:file='app/assets/tailwind/application.css'}
 
+```js
+import "../../node_modules/preline/dist/preline"
+```
+{:file='app/javascript/application.js'}
+
 ```sh
 rails g controller home index
 ```
