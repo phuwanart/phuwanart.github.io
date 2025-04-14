@@ -7,8 +7,9 @@ tags:
 - rails
 - rails 8
 - flowbite
-date: 2025-04-14 19:20 +0700
+- tailwindcss
 ---
+
 ```sh
 rails new blog -c tailwind -j bun
 ```
