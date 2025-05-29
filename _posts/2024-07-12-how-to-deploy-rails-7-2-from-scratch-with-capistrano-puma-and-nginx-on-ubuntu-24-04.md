@@ -32,7 +32,7 @@ ifconfig
 พอได้ IP มาแล้วให้ไปใช้เครื่อง local ของเราให้เรา ssh เข้าไปที่ server โดยใช้ขื่อ root หรือชื่ออะไรก็ตามที่กรอกตอนติดตั้ง ubuntu:
 
 ```sh
-ssh root@1.2.3.4 
+ssh root@1.2.3.4
 ```
 {:file='Local Machine'}
 
@@ -101,7 +101,7 @@ ssh deploy@1.2.3.4
 แต่ถ้า `ssh-key is not recognized` ขึ้นมาให้รันคำสั่งตามนี้:
 
 ```sh
-eval $(ssh-agent)  
+eval $(ssh-agent)
 ssh-add
 ```
 {:file='Local Machine'}
@@ -295,12 +295,10 @@ cat ~/.ssh/id_rsa.pub
 
 ```ruby
 group :development do
-  gem "bcrypt_pbkdf"
   gem "capistrano"
   gem "capistrano3-puma", "~> 6.beta.1"
   gem "capistrano-rails"
   gem "capistrano-rbenv"
-  gem "ed25519"
 end
 ```
 {:file='Gemfile'}
@@ -426,7 +424,7 @@ set :rbenv_ruby, "3.3.4"
 และสุดท้ายแก้ไขไฟล์ `config/deploy/production.rb`:
 
 ```ruby
-server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web]
+server "[PRODUCTION_IP]", user: "[DEPLOY_USER]", roles: %w[app db web worker]
 ```
 {:file='config/deploy/production.rb'}
 
@@ -459,7 +457,7 @@ rails secret
 ## Deploy
 
 > ตั้งแต่ rails 7.1 ได้ตั้งค่า `force_ssl` ใน production เป็น `true` เป็นค่าเริ่มต้น ในช่วงแรกที่เรา deploy อาจจะตั้งค่าให้เป็น `false` ก่อน แล้วค่อยเปลี่ยนกลับตอนเรา setup ssl ในตอนท้าย:
-> 
+>
 > ```ruby
 > config.force_ssl = false
 > ```
@@ -552,7 +550,7 @@ end
 {: .prompt-info }
 
 > ตรวจดู `/home/[DEPLOY_TO]/shared/config/database.yml` เสียก่อน เราจะต้อง config ในส่วนของ production ให้เข้ากับ database ที่เราเลือกใช้ ในที่นี้เราใช้ SQLite ดังนั้นจึงต้องระบุที่ที่จะเก็บไฟล์ `production.sqlite3` ด้วยตัวอย่างในที่นี้เช่น:
-> 
+>
 > ```yaml
 > production:
 >   <<: *default
@@ -567,6 +565,37 @@ end
 cap production deploy
 ```
 {:file='Local Machine'}
+
+> ในขั้นตอนนี้อาจจะมีการขอสิทธิ์ sudo ในตอนรันคำสั่ง ซึ่งจะมี error ประมาณนี้:
+> ```sh
+> 01 sudo /bin/systemctl restart puma_appname_production
+> 01 sudo
+> 01 :
+> 01 a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+> 01
+> 01 sudo
+> 01 :
+> 01 a password is required
+> 01
+> ```
+> {:file='Local Machine'}
+>
+> ให้เรา login เข้า deploy user แล้วทำตามนี้:
+>
+> ```sh
+> sudo visudo
+> ```
+> {:file='deploy@1.2.3.4'}
+>
+> จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
+> ```sh
+> # Allow members of group sudo to execute any command
+> %sudo   ALL=(ALL:ALL) ALL
+>
+> deploy  ALL=(ALL) NOPASSWD:ALL
+> ```
+> {:file='deploy@1.2.3.4'}
+{: .prompt-danger }
 
 หากเราดูสถานะของ puma ก็น่าจะ active ด้วย:
 
@@ -681,7 +710,7 @@ sudo service nginx restart
 
 
 > บางที่เราอาจจะเจอกับ 503 bad gateway ซึ่งเมื่อดู log แล้วจะเป็นการฟ้องเรื่อง permission
-> 
+>
 > ```sh
 > tail -f /var/log/nginx/error.log
 >
@@ -699,7 +728,7 @@ sudo service nginx restart
 {: .prompt-danger }
 
 > และบางทีอาจจะเจอ 500 Internal Server Error ให้ไปดู log ของ `puma_error.log` หากเจอว่า
-> 
+>
 > ```sh
 > Permission denied @ rb_io_reopen - /home/.../shared/log/puma_access.log (Errno::EACCES)
 > ```
@@ -711,9 +740,9 @@ sudo service nginx restart
 > sudo chown $USER:$USER -R /home/$USER/appname/
 > ```
 > {:file='deploy@1.2.3.4'}
-> 
+>
 > จากนั้นก็ทำการ restart puma
-> 
+>
 > ```sh
 > cap production puma:restart
 > ```
