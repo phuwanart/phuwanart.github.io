@@ -507,14 +507,47 @@ cap production copy_linked_files
 ```
 {:file='Local Machine'}
 
-หลังจากรัน `deploy:check` ผ่านแล้ว ให้รัน `puma:install` ต่อเลย:
+หลังจากรัน `deploy:check` ก็จะผ่านทั้งหมด
+
+ต่อไปเป็นการติดตั้ง Puma systemd service:
 
 ```sh
 cap production puma:install
 ```
 {:file='Local Machine'}
 
-เป็นการติดตั้ง Puma systemd service หลังจากติดตั้งผ่านให้ remote เข้าไปแก้ไข `puma.rb` เสียก่อน โดยไฟล์จะอยู่ที่ `/home/[DEPLOY_TO]/shared/config/puma.rb`:
+> ในขั้นตอนนี้อาจจะมีการขอสิทธิ์ sudo ในตอนรันคำสั่ง ซึ่งจะมี error ประมาณนี้:
+> ```sh
+> 01 sudo /bin/systemctl restart puma_appname_production
+> 01 sudo
+> 01 :
+> 01 a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+> 01
+> 01 sudo
+> 01 :
+> 01 a password is required
+> 01
+> ```
+> {:file='Local Machine'}
+>
+> ให้เรา login เข้า deploy user แล้วทำตามนี้:
+>
+> ```sh
+> sudo visudo
+> ```
+> {:file='deploy@1.2.3.4'}
+>
+> จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
+> ```sh
+> # Allow members of group sudo to execute any command
+> %sudo   ALL=(ALL:ALL) ALL
+>
+> deploy  ALL=(ALL) NOPASSWD:ALL
+> ```
+> {:file='deploy@1.2.3.4'}
+{: .prompt-danger }
+
+หลังจากติดตั้งผ่านให้ remote เข้าไปแก้ไข `puma.rb` เสียก่อน โดยไฟล์จะอยู่ที่ `/home/[DEPLOY_TO]/shared/config/puma.rb`:
 
 ```ruby
 #!/usr/bin/env puma
@@ -565,37 +598,6 @@ end
 cap production deploy
 ```
 {:file='Local Machine'}
-
-> ในขั้นตอนนี้อาจจะมีการขอสิทธิ์ sudo ในตอนรันคำสั่ง ซึ่งจะมี error ประมาณนี้:
-> ```sh
-> 01 sudo /bin/systemctl restart puma_appname_production
-> 01 sudo
-> 01 :
-> 01 a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
-> 01
-> 01 sudo
-> 01 :
-> 01 a password is required
-> 01
-> ```
-> {:file='Local Machine'}
->
-> ให้เรา login เข้า deploy user แล้วทำตามนี้:
->
-> ```sh
-> sudo visudo
-> ```
-> {:file='deploy@1.2.3.4'}
->
-> จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
-> ```sh
-> # Allow members of group sudo to execute any command
-> %sudo   ALL=(ALL:ALL) ALL
->
-> deploy  ALL=(ALL) NOPASSWD:ALL
-> ```
-> {:file='deploy@1.2.3.4'}
-{: .prompt-danger }
 
 หากเราดูสถานะของ puma ก็น่าจะ active ด้วย:
 
