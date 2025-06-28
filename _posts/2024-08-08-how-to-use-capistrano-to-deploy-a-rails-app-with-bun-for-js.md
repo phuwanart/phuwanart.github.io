@@ -28,7 +28,7 @@ cssbundling-rails: Command install failed, ensure bun is installed
 ให้เพิ่มโค้ดนี้ลงใน `config/deploy.rb`:
 
 ```ruby
-set :default_env, { path: "~/.bun/bin:$PATH" }
+set :default_env, { path: "/home/[deploy_user]/.bun/bin:$PATH" }
 ```
 
 ## References
