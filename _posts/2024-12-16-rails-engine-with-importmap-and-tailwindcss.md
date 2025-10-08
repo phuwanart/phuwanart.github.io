@@ -249,4 +249,4 @@ $(bundle show tailwindcss-ruby)/exe/tailwindcss -i app/assets/stylesheets/blorgh
 
 - https://mariochavez.io/desarrollo/2023/08/23/working-with-rails-engines-importmap-tailwindcss/
 - https://stackoverflow.com/questions/71232601/how-to-use-tailwind-css-gem-in-a-rails-7-engine
-
+- https://radanskoric.com/articles/rails-assets-combine-importmaps
