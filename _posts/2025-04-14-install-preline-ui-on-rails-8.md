@@ -10,6 +10,7 @@ tags:
 - preline
 date: 2025-04-14 18:59 +0700
 ---
+
 ```sh
 rails new blog -c tailwind -j bun
 ```

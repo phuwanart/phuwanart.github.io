@@ -572,7 +572,7 @@ restart_command "bundle exec puma"
 
 prune_bundler
 
-on_restart do
+before_restart do
   puts "Refreshing Gemfile"
   ENV["BUNDLE_GEMFILE"] = ""
 end
