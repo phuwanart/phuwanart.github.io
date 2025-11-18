@@ -69,7 +69,7 @@ mkdir blog_storage
 ```
 {:file='deploy@1.2.3.4'}
 
-ให้เรา login เข้า deploy user แล้วทำตามนี้:
+จากนั้นแก้ไฟล์ sudoers
 
 ```sh
 sudo visudo
@@ -130,7 +130,7 @@ sudo vi ~/.ssh/authorized_keys
 {:file='deploy@1.2.3.4'}
 
 ```sh
-ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX user@computer
+ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX user@computer
 ```
 {:file="~/.ssh/authorized_keys"}
 
@@ -273,7 +273,7 @@ builder:
 -# ssh:
 -#   user: app
 +ssh:
-+ user: deploy
++  user: deploy
 
 # Use accessory services (secrets come from .kamal/secrets).
 # accessories:
