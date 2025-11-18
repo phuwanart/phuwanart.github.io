@@ -57,7 +57,7 @@ sudo apt install git-core curl zlib1g-dev build-essential libssl-dev libreadline
 [^setup-firewall]: [Setting Up and Securing SSH on Ubuntu 22.04: A Comprehensive Guide](https://serverastra.com/docs/Tutorials/Setting-Up-and-Securing-SSH-on-Ubuntu-22.04%253A-A-Comprehensive-Guide)
 
 ```sh
-sudo apt install openssh-server
+sudo apt install openssh-server ufw
 sudo ufw status
 sudo ufw enable
 sudo ufw allow ssh

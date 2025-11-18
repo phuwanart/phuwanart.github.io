@@ -9,26 +9,151 @@ tags:
 - deploy
 date: 2025-11-05 13:55 +0700
 ---
-หลังจากที่ [rails 8.1](https://rubyonrails.org/blog/2023/04/03/rails-8-1-released.html) ปล่อยออกมา มีอย่างหนึ่งที่เห็นแล้วเป็นอะไรที่กำลังรออยู่เลยก็คือ Registry-Free Kamal Deployments ที่จะทำให้เราสามารถ deploy rails application ได้โดยไม่ต้องใช้ registry ที่เป็น online อย่างพวก [docker hub](https://hub.docker.com/) อีกแล้ว เพราะมันได้ free private registry แค่ 1 ตัวเท่านั้น
 
-ในการทดลองนี้จะลอง deploy บน vm ก่อน ซึ่งน่าจะเป็นแนวทางในการ deploy บน server จริง ๆ หรือบน cloud service ที่มีการจัดการ server ให้เรา อย่างเช่น [DigitalOcean](https://www.digitalocean.com/)
+หลังจากที่ [rails 8.1](https://rubyonrails.org/blog/2023/04/03/rails-8-1-released.html) ปล่อยออกมา มีอย่างหนึ่งที่เห็นแล้วเป็นอะไรที่กำลังรออยู่เลยก็คือ **Registry-Free Kamal Deployments** ที่จะทำให้เราสามารถ deploy rails application ได้โดยไม่ต้องใช้ registry ที่เป็น online อย่างพวก [docker hub](https://hub.docker.com/) อีกแล้ว เพราะมันได้ free private registry แค่ 1 ตัวเท่านั้น
 
 ## Getting Started
 
-- ติดตั้ง ubuntu server บน vm (ผมเลือกใช้ VirtualBox)
+ในการทดลองนี้จะลอง deploy บน vm ก่อน ซึ่งน่าจะเป็นแนวทางในการ deploy บน server จริง ๆ ของเรา หรือบน cloud service ที่มีการจัดการ vps ให้เรา อย่างเช่น [DigitalOcean](https://www.digitalocean.com/)
 
-เหมือนเดิม เราจะสร้าง user ใหม่เพื่อใช้ในการ deploy
+### Create a Server
 
 ```sh
-sudo adduser deploy
-sudo adduser deploy sudo
-exit
+sudo apt install openssh-server ufw
+sudo ufw status
+sudo ufw enable
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
+sudo systemctl restart ssh
+sudo systemctl status ssh
 ```
 {:file='root@1.2.3.4'}
 
-- แน่ใจว่า ssh จาก local machine เข้าไปที่ vm ที่ต้องการ deploy ได้ (ใช้ `ssh-copy-id` เพื่อจะได้ไม่ต้องใส่ password ทุกครั้งตอน deploy)
-- แน่ใจว่า local machine ของคุณมี Docker Desktop ติดตั้งแล้ว (หรือจะใช้ OrbStack ก็ได้)
-- สร้าง rails application
+### Create Deploy User
+
+```sh
+sudo adduser deploy
+```
+{:file='root@1.2.3.4'}
+
+และเพิ่ม user `deploy` ไปยัง `sudo` group
+
+```sh
+sudo adduser deploy sudo
+```
+{:file='root@1.2.3.4'}
+
+จากนั้นก็ login เข้า deploy user
+
+```sh
+su deploy
+```
+{:file='root@1.2.3.4'}
+
+เพิ่ม group `docker` ซึ่งเป็นส่วนที่ kamal จะใช้ในการ deploy
+
+```sh
+sudo addgroup docker
+sudo usermod -aG docker $USER
+```
+{:file='deploy@1.2.3.4'}
+
+> ต้อง logout แล้ว login ใหม่ (เพื่อให้สิทธิ์กลุ่ม docker มีผล)
+{: .prompt-tip }
+
+แล้วสร้าง directory สำหรับ storage สำหรับ rails application
+
+```sh
+mkdir blog_storage
+```
+{:file='deploy@1.2.3.4'}
+
+ให้เรา login เข้า deploy user แล้วทำตามนี้:
+
+```sh
+sudo visudo
+```
+{:file='deploy@1.2.3.4'}
+
+จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
+
+```sh
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+
+deploy  ALL=(ALL) NOPASSWD:ALL
+```
+{:file='deploy@1.2.3.4'}
+
+### Add SSH Key for Deploy
+
+#### Using `ssh-copy-id`
+
+```sh
+brew install ssh-copy-id
+```
+{:file="Local Machine"}
+
+```sh
+ssh-copy-id deploy@1.2.3.4
+```
+{:file="Local Machine"}
+
+```sh
+ssh deploy@1.2.3.4
+```
+{:file="Local Machine"}
+
+#### Using `authorized-key`
+
+```sh
+# for RSA SSH key
+cat ~/.ssh/id_rsa.pub
+```
+{:file="Local Machine"}
+
+```sh
+# for ED25519 SSH key
+cat ~/.ssh/id_ed25519.pub
+```
+{:file="Local Machine"}
+
+```sh
+mkdir ~/.ssh && touch ~/.ssh/authorized_keys
+```
+{:file='deploy@1.2.3.4'}
+
+```sh
+sudo vi ~/.ssh/authorized_keys
+```
+{:file='deploy@1.2.3.4'}
+
+```sh
+ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX user@computer
+```
+{:file="~/.ssh/authorized_keys"}
+
+```sh
+ssh deploy@1.2.3.4
+```
+{:file="Local Machine"}
+
+### Install Docker Desktop or OrbStack
+
+```sh
+brew install --cask docker-desktop
+```
+{:file="Local Machine"}
+
+หรือ
+
+```sh
+brew install --cask orbstack
+```
+{:file="Local Machine"}
+
+### Create Rails Application
 
 ```sh
 rails new blog
@@ -39,29 +164,14 @@ rails generate controller home index
 
 ตั้ง root ใช้เรียบร้อย
 
-```rb
+```ruby
 root 'home#index'
 ```
 {:file="config/routes.rb"}
 
-- ที่ server ของเราจะเพิ่ม group docker อันนี้เป็นส่วนที่ kamal จะใช้ในการ deploy
+### Configuring Kamal
 
-```sh
-sudo addgroup docker
-sudo usermod -aG docker $USER
-```
-{:file='deploy@1.2.3.4'}
-
-จากนั้น logout แล้ว login ใหม่ (เพื่อให้สิทธิ์กลุ่ม docker มีผล)
-
-แล้วสร้าง directory สำหรับ storage สำหรับ rails application
-
-```sh
-mkdir blog_storage
-```
-{:file='deploy@1.2.3.4'}
-
-- กลับมาที่ local machine ไปตรวจดู `config/deploy.yml` แก้ไขตามนี้
+ไปตรวจดู `config/deploy.yml` แก้ไขตามนี้
 
 ```diff
 # Name of your application. Used to uniquely configure containers.
@@ -74,7 +184,7 @@ image: blog
 servers:
   web:
 -   - 192.168.0.1
-+   - [ip ของ server ของเรา]
++   - [ip_address ของ server]
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -193,34 +303,9 @@ builder:
 
 จากนั้น commit ให้เรียบร้อยก่อนจะเริ่ม deploy กัน
 
-- รันคำสั่ง `kamal setup`
+รันคำสั่ง `kamal setup`
 
-> ในขั้นตอนนี้อาจจะมีการขอสิทธิ์ sudo ในตอนรันคำสั่ง ซึ่งจะมี error ประมาณนี้:
-> ```sh
-> sh stderr: + sudo -E sh -c apt-get -qq update >/dev/null
-> sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
-> sudo: a password is required
-> ```
-> {:file='Local Machine'}
->
-> ให้เรา login เข้า deploy user แล้วทำตามนี้:
->
-> ```sh
-> sudo visudo
-> ```
-> {:file='deploy@1.2.3.4'}
->
-> จากนั้นเพิ่ม `deploy  ALL=(ALL) NOPASSWD:ALL` หลังบรรทัด `%sudo   ALL=(ALL:ALL) ALL`
-> ```sh
-> # Allow members of group sudo to execute any command
-> %sudo   ALL=(ALL:ALL) ALL
->
-> deploy  ALL=(ALL) NOPASSWD:ALL
-> ```
-> {:file='deploy@1.2.3.4'}
-{: .prompt-danger }
-
-หลังจาก setup เสร็จก็เปิดเว็บเบราว์เซอร์ไปที่ ip address ของ server ที่เรา deploy ได้เลย
+หลังจาก setup เสร็จก็เปิดเว็บเบราว์เซอร์ไปที่ ip_address ของ server ที่เรา deploy ได้เลย
 
 และครั้งต่อไปเราจะใช้ `kamal deploy` เพื่อ deploy ใหม่
 
@@ -231,3 +316,5 @@ builder:
 ## References
 
 - [Kamal Deployment: The Newest Form of Self-Torture](https://alec-c4.com/posts/2025-04-02-kamal/)
+- [Rails Application Deployment on Digital Ocean](https://medium.com/@qasimali7566675/rails-application-deployment-on-digital-ocean-8483d3f10813)
+- [Ultimate Guide to Server Hardening for Kamal](https://blog.cloud66.com/ultimate-guide-to-server-hardening-for-kamal)
