@@ -76,7 +76,7 @@ eagerLoadControllersFrom("controllers", application)
 {:file='app/javascript/blorgh/controllers/index.js'}
 
 ```ruby
-pin "application", to: "blorgh/application.js", preload: true
+pin "blorgh/application", preload: true
 pin "@hotwired/turbo-rails", to: "turbo.min.js", preload: true
 pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
