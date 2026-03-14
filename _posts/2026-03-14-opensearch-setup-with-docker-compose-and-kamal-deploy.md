@@ -3,12 +3,12 @@ layout: post
 title: OpenSearch setup with Docker Compose and Kamal Deploy
 categories: Posts
 tags:
-  - docker
-  - kamal
-  - rails
-  - opensearch
+- docker
+- kamal
+- rails
+- opensearch
+date: 2026-03-14 20:59 +0700
 ---
-
 ## Getting Started
 
 ### Create Rails Application
