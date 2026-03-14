@@ -1,7 +1,7 @@
 ---
 layout: post
 title: OpenSearch setup with Docker Compose and Kamal Deploy
-categories: Posts
+categories: Notes
 tags:
 - docker
 - kamal
